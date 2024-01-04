@@ -1,25 +1,21 @@
-pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client clickuppy
-
 import os
 import time
-from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from clickuppy import ClickUp
 
 # Google Sheets API setup
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-SPREADSHEET_ID = 'YOUR_GOOGLE_SPREADSHEET_ID'
+SPREADSHEET_ID = 'Google Sheet ID'
 RANGE_NAME = 'Sheet1!A:D'  # Update with the appropriate sheet and range
+API_KEY = 'Google API Key'
 
 # ClickUp API setup
-CLICKUP_API_KEY = 'YOUR_CLICKUP_API_KEY'
-CLICKUP_SPACE_ID = 'YOUR_CLICKUP_SPACE_ID'
-CLICKUP_FOLDER_ID = 'YOUR_CLICKUP_FOLDER_ID'
-CLICKUP_LIST_ID = 'YOUR_CLICKUP_LIST_ID'
+CLICKUP_API_KEY = 'API Key'
+CLICKUP_SPACE_ID = 'Space ID'
+CLICKUP_FOLDER_ID = 'Folder ID'
+CLICKUP_LIST_ID = 'List ID'
 
 def read_google_sheet():
-    credentials = service_account.Credentials.from_service_account_file('path/to/your/credentials.json', scopes=SCOPES)
-    service = build('sheets', 'v4', credentials=credentials)
+    service = build('sheets', 'v4', developerKey=API_KEY)
 
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
@@ -31,8 +27,9 @@ def create_clickup_task(task_data):
     clickup = ClickUp(CLICKUP_API_KEY)
 
     task_data = {
-        'name': task_data[0],
-        'description': task_data[1],
+        'name': task_data[3],
+        'assignment id': task_data[2],
+        'department': task_data[1],
         'status': 'Open',  # Update with your desired status
         'priority': 2,  # Update with your desired priority
     }
@@ -40,9 +37,12 @@ def create_clickup_task(task_data):
     task = clickup.task.create_task(
         list_id=CLICKUP_LIST_ID,
         name=task_data['name'],
-        content=task_data['description'],
+        content=task_data['assignment id'],
         status=task_data['status'],
-        priority=task_data['priority']
+        priority=task_data['priority'],
+        custom_fields={
+            'department': task_data['department'],
+        }
     )
 
     print(f'Created ClickUp task: {task["name"]}')
@@ -62,3 +62,4 @@ if __name__ == '__main__':
             last_row_count = current_row_count
 
         time.sleep(60)  # Check for changes every 60 seconds
+
